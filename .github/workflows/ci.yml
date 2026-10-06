@@ -29,7 +29,7 @@ jobs:
         run: |
           xcodebuild \
             -scheme TrisNotificationKit \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5' \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO \
             test
