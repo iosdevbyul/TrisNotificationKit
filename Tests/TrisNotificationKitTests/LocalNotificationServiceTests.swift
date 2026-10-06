@@ -117,6 +117,29 @@ final class LocalNotificationServiceTests: XCTestCase {
         )
     }
 
+    func testSendWithSoundDisabledCreatesSilentNotification() async throws {
+        let client = MockNotificationCenterClient()
+
+        let service = LocalNotificationService(
+            client: client
+        )
+
+        _ = try await service.send(
+            title: "Silent Title",
+            body: "Silent Body",
+            identifier: "silent.notification",
+            sound: false
+        )
+
+        let request = try XCTUnwrap(
+            client.addedRequests.first
+        )
+
+        XCTAssertNil(
+            request.content.sound
+        )
+    }
+
     func testSendWithoutIdentifierGeneratesIdentifier() async throws {
         let client = MockNotificationCenterClient()
 
@@ -140,6 +163,37 @@ final class LocalNotificationServiceTests: XCTestCase {
         XCTAssertEqual(
             request.identifier,
             identifier
+        )
+    }
+
+    func testSendWithoutIdentifierSupportsSoundDisabled() async throws {
+        let client = MockNotificationCenterClient()
+
+        let service = LocalNotificationService(
+            client: client
+        )
+
+        let identifier = try await service.send(
+            title: "Silent Title",
+            body: "Silent Body",
+            sound: false
+        )
+
+        XCTAssertFalse(
+            identifier.isEmpty
+        )
+
+        let request = try XCTUnwrap(
+            client.addedRequests.first
+        )
+
+        XCTAssertEqual(
+            request.identifier,
+            identifier
+        )
+
+        XCTAssertNil(
+            request.content.sound
         )
     }
 
@@ -198,6 +252,11 @@ final class LocalNotificationServiceTests: XCTestCase {
             "Scheduled Body"
         )
 
+        XCTAssertEqual(
+            request.content.sound,
+            .default
+        )
+
         let trigger = try XCTUnwrap(
             request.trigger as? UNCalendarNotificationTrigger
         )
@@ -229,6 +288,38 @@ final class LocalNotificationServiceTests: XCTestCase {
         XCTAssertEqual(
             trigger.dateComponents.minute,
             30
+        )
+    }
+
+    func testScheduleWithSoundDisabledCreatesSilentNotification() async throws {
+        let client = MockNotificationCenterClient()
+
+        let service = LocalNotificationService(
+            client: client
+        )
+
+        let date = Date(
+            timeIntervalSince1970: 1_800_000_000
+        )
+
+        _ = try await service.schedule(
+            title: "Silent Scheduled Title",
+            body: "Silent Scheduled Body",
+            at: date,
+            identifier: "silent.scheduled.notification",
+            sound: false
+        )
+
+        let request = try XCTUnwrap(
+            client.addedRequests.first
+        )
+
+        XCTAssertNil(
+            request.content.sound
+        )
+
+        XCTAssertNotNil(
+            request.trigger as? UNCalendarNotificationTrigger
         )
     }
 
