@@ -10,7 +10,7 @@ This makes the package reusable from modules such as TrisPlaceRecognitionKit, Wa
 
 ## Requirements
 
-- iOS 17+
+- iOS 15+
 - Swift Package Manager
 
 ## Installation
