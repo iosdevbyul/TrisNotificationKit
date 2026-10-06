@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Build and Test
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Show Swift and Xcode versions
+        run: |
+          swift --version
+          xcodebuild -version
+
+      - name: Select iOS Simulator
+        run: |
+          SIMULATOR_ID=$(python3 <<'PY'
+          import json
+          import re
+          import subprocess
+
+          data = json.loads(
+              subprocess.check_output(
+                  ["xcrun", "simctl", "list", "devices", "available", "-j"]
+              )
+          )
+
+          candidates = []
+
+          for runtime, devices in data["devices"].items():
+              match = re.search(r"iOS-(\d+)-(\d+)(?:-(\d+))?", runtime)
+
+              if not match:
+                  continue
+
+              version = tuple(
+                  int(value or 0)
+                  for value in match.groups()
+              )
+
+              for device in devices:
+                  if device["name"].startswith("iPhone"):
+                      candidates.append(
+                          (
+                              version,
+                              device["name"],
+                              device["udid"]
+                          )
+                      )
+
+          if not candidates:
+              raise SystemExit("No available iPhone simulator found.")
+
+          candidates.sort(reverse=True)
+
+          version, name, udid = candidates[0]
+
+          print(udid)
+          PY
+          )
+
+          echo "SIMULATOR_ID=$SIMULATOR_ID" >> "$GITHUB_ENV"
+
+      - name: Build and Test
+        run: |
+          xcodebuild \
+            -scheme TrisNotificationKit \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            test
