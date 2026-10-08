@@ -21,13 +21,13 @@ Add the package in Xcode with **File > Add Package Dependencies** and use:
 https://github.com/iosdevbyul/TrisNotificationKit
 ```
 
-If you manage dependencies in `Package.swift`, the current repository can be added from `main`:
+If you manage dependencies in `Package.swift`, use the released semantic version:
 
 ```swift
 dependencies: [
     .package(
         url: "https://github.com/iosdevbyul/TrisNotificationKit",
-        branch: "main"
+        from: "1.0.0"
     )
 ]
 ```
